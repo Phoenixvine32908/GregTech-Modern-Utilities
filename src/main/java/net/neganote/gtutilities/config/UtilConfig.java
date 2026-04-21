@@ -111,6 +111,11 @@ public class UtilConfig {
         @Configurable.Comment({
                 "Whether the Tag Stocking Input Bus/Hatch are enabled. If AE2 is not loaded, this config will not load the machines regardless." })
         public boolean tagStockingEnabled = true;
+
+        @Configurable
+        @Configurable.Comment({
+                "Whether the Infinite Spray Can should be enabled." })
+        public boolean infiniteSprayCanEnabled = true;
     }
 
     public static boolean coolantEnabled() {

@@ -17,6 +17,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -24,6 +25,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neganote.gtutilities.client.renderer.SprayCanHudOverlay;
 import net.neganote.gtutilities.client.renderer.UtilShaders;
 import net.neganote.gtutilities.common.data.UtilPlaceholders;
 import net.neganote.gtutilities.common.item.UtilItems;
@@ -34,6 +36,7 @@ import net.neganote.gtutilities.common.materials.UtilMaterials;
 import net.neganote.gtutilities.common.tools.UtilToolConnection;
 import net.neganote.gtutilities.config.UtilConfig;
 import net.neganote.gtutilities.datagen.UtilDatagen;
+import net.neganote.gtutilities.network.UtilsNetwork;
 
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import org.apache.logging.log4j.LogManager;
@@ -108,6 +111,7 @@ public class GregTechModernUtilities {
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
+            UtilsNetwork.init();
             LOGGER.info("Hello from common setup! This is *after* registries are done, so we can do this:");
             LOGGER.info("Look, I found a {}!", Items.DIAMOND);
         });
@@ -131,6 +135,17 @@ public class GregTechModernUtilities {
             }
 
         });
+    }
+
+    @Mod.EventBusSubscriber(modid = GregTechModernUtilities.MOD_ID,
+                            bus = Mod.EventBusSubscriber.Bus.MOD,
+                            value = Dist.CLIENT)
+    public static class ClientModBusEvents {
+
+        @SubscribeEvent
+        public static void registerGuiOverlays(RegisterGuiOverlaysEvent event) {
+            event.registerAboveAll("spray_can_info", SprayCanHudOverlay.HUD_SPRAY_CAN);
+        }
     }
 
     // You MUST have this for custom materials.

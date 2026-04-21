@@ -26,6 +26,8 @@ public class UtilItems {
     public static ItemEntry<OmniBreakerItem> OMNIBREAKER = null;
     public static int OMNIBREAKER_TIER = UtilConfig.INSTANCE.features.omnibreakerTier;
 
+    public static ItemEntry<InfiniteSprayCanItem> INFINITE_SPRAY_CAN = null;
+
     public static ItemEntry<Item> ANCIENT_GOLD_COIN = null;
     public static ItemEntry<Item> CHOCOLATE_COIN = null;
     public static ItemEntry<Item> COPPER_CREDIT = null;
@@ -64,6 +66,15 @@ public class UtilItems {
                                     OMNIBREAKER_TIER),
                             new PrecisionBreakBehavior(OMNIBREAKER_TIER)))
                     .register();
+
+            if (UtilConfig.INSTANCE.features.infiniteSprayCanEnabled || GTCEu.isDataGen()) {
+                INFINITE_SPRAY_CAN = REGISTRATE
+                        .item("infinite_spray_can", InfiniteSprayCanItem::new)
+                        .lang("Infinite Spray Can")
+                        .properties(p -> p.stacksTo(1))
+                        .model((ctx, prov) -> prov.handheld(ctx, prov.modLoc("item/tools/infinite_spray_can")))
+                        .register();
+            }
         }
 
         if (UtilConfig.INSTANCE.features.coinsEnabled || GTCEu.isDataGen()) {
