@@ -115,7 +115,7 @@ public class UtilConfig {
         @Configurable
         @Configurable.Comment({
                 "Whether the Infinite Spray Can should be enabled." })
-        public boolean infiniteSprayCanEnabled = true;
+        public boolean infiniteSprayCanEnabled = false;
     }
 
     public static boolean coolantEnabled() {

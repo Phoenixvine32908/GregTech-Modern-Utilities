@@ -1,4 +1,5 @@
-# GregTech Modern Utilities version 2.8.0
+# GregTech Modern Utilities version 2.9.0
 
-* Migrate to GTm 7.5.1 (this version is REQUIRED to run in 7.5.1+)
-  * Includes removal of custom hv/iv chainsaw and screwdriver, as they are now in the base mod
+* Update to GTm 7.5.3
+* Add the Infinite Spray Can, acts like regular GTm spray cans but with selectable colors (including solvent) and has infinite uses
+  * Thanks Phoenixvine
