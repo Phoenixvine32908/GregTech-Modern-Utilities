@@ -1,6 +1,5 @@
 {
   "behaviour.paintspray.infinite.fluid_storage": "§bPaint: §f%s / %s mB",
-  "behaviour.paintspray.infinite.no_fluid": "§cRequires Polychromatic Paint!§r",
   "behaviour.paintspray.infinite.status.color": "§7Mode: §f%s",
   "behaviour.paintspray.infinite.status.solvent": "Solvent",
   "behaviour.paintspray.infinite.tooltip.current_color": "Current Color: %s",
@@ -148,7 +147,7 @@
   "item.gtmutils.zpm_power_unit": "ZPM Power Unit",
   "itemGroup.gtmutils.creative_tab": "GregTech Modern Utilities",
   "key.categories.gtmutils": "GTM Utils",
-  "key.gtmutils.spray_can_menuu": "Open Spray Can Radial Menu",
+  "key.gtmutils.spray_can_menu": "Open Spray Can Radial Menu",
   "material.gtmutils.quantum_coolant": "Quantum Coolant",
   "tooltip.omnibreaker.can_break_anything": "The Omni-breaker can insta-mine ANYTHING!",
   "tooltip.omnibreaker.charge_status": "Energy: %s EU / %s EU",

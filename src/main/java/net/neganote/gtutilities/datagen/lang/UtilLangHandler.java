@@ -128,13 +128,12 @@ public class UtilLangHandler {
 
         // Keybind
         provider.add("key.categories.gtmutils", "GTM Utils");
-        provider.add("key.gtmutils.spray_can_menuu", "Open Spray Can Radial Menu");
+        provider.add("key.gtmutils.spray_can_menu", "Open Spray Can Radial Menu");
 
         // Infinite Spray Can
         provider.add("gui.gtmutils.color_select.title", "Select Color");
         provider.add("behaviour.paintspray.solvent.short", "Solvent");
         provider.add("behaviour.paintspray.infinite.status.solvent", "Solvent");
-        provider.add("behaviour.paintspray.infinite.no_fluid", "§cRequires Polychromatic Paint!§r");
         provider.add("behaviour.paintspray.infinite.tooltip.solvent", "§7Mode: §bSolvent (Cleaning)");
         provider.add("behaviour.paintspray.infinite.tooltip.info",
                 "§eRight-click §7to paint.");

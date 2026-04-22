@@ -1,6 +1,5 @@
 {
   "behaviour.paintspray.infinite.fluid_storage": "ᗺɯ %s / %sɟ§ :ʇuıɐԀq§",
-  "behaviour.paintspray.infinite.no_fluid": "ɹ§¡ʇuıɐԀ ɔıʇɐɯoɹɥɔʎןoԀ sǝɹınbǝᴚɔ§",
   "behaviour.paintspray.infinite.status.color": "%sɟ§ :ǝpoWㄥ§",
   "behaviour.paintspray.infinite.status.solvent": "ʇuǝʌןoS",
   "behaviour.paintspray.infinite.tooltip.current_color": "%s :ɹoןoƆ ʇuǝɹɹnƆ",
@@ -148,7 +147,7 @@
   "item.gtmutils.zpm_power_unit": "ʇıu∩ ɹǝʍoԀ WԀZ",
   "itemGroup.gtmutils.creative_tab": "sǝıʇıןıʇ∩ uɹǝpoW ɥɔǝ⟘bǝɹ⅁",
   "key.categories.gtmutils": "sןıʇ∩ W⟘⅁",
-  "key.gtmutils.spray_can_menuu": "nuǝW ןɐıpɐᴚ uɐƆ ʎɐɹdS uǝdO",
+  "key.gtmutils.spray_can_menu": "nuǝW ןɐıpɐᴚ uɐƆ ʎɐɹdS uǝdO",
   "material.gtmutils.quantum_coolant": "ʇuɐןooƆ ɯnʇuɐnὉ",
   "tooltip.omnibreaker.can_break_anything": "¡⅁NIH⟘ʎNⱯ ǝuıɯ-ɐʇsuı uɐɔ ɹǝʞɐǝɹq-ıuɯO ǝɥ⟘",
   "tooltip.omnibreaker.charge_status": "∩Ǝ %s / ∩Ǝ %s :ʎbɹǝuƎ",
