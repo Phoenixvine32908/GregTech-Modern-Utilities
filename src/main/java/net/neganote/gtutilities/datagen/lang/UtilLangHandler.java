@@ -126,6 +126,25 @@ public class UtilLangHandler {
         provider.add("config.jade.plugin_gtmutils.me_expanded_pattern_buffer_proxy_info.desc",
                 "Shows a snapshot of expanded ME pattern buffer proxy contents in Jade");
 
+        // Keybind
+        provider.add("key.categories.gtmutils", "GTM Utils");
+        provider.add("key.gtmutils.spray_can_menu", "Open Spray Can Radial Menu");
+
+        // Infinite Spray Can
+        provider.add("gui.gtmutils.color_select.title", "Select Color");
+        provider.add("behaviour.paintspray.solvent.short", "Solvent");
+        provider.add("behaviour.paintspray.infinite.status.solvent", "Solvent");
+        provider.add("behaviour.paintspray.infinite.tooltip.solvent", "§7Mode: §bSolvent (Cleaning)");
+        provider.add("behaviour.paintspray.infinite.tooltip.info",
+                "§eRight-click §7to paint.");
+        provider.add("behaviour.paintspray.infinite.tooltip.info_1",
+                "§eShift + Right-click on paintable block §7to chain paint.");
+        provider.add("behaviour.paintspray.infinite.tooltip.info_2",
+                "§eShift + Right-click §7to open Color Selection Menu.");
+        provider.add("behaviour.paintspray.infinite.fluid_storage", "§bPaint: §f%s / %s mB");
+        provider.add("behaviour.paintspray.infinite.status.color", "§7Mode: §f%s");
+        provider.add("behaviour.paintspray.infinite.tooltip.current_color", "Current Color: %s");
+
         dfs(provider, new HashSet<>(), UtilConfig.CONFIG_HOLDER.getValueMap());
     }
 

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "gtmutils:item/tools/infinite_spray_can"
+  }
+}
