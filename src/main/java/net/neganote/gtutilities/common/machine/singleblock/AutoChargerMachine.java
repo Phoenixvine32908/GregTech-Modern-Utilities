@@ -119,6 +119,10 @@ public class AutoChargerMachine extends TieredEnergyMachine
         }
     }
 
+    public void onMachineRemoved() {
+        this.clearInventory(this.chargerInventory);
+    }
+
     protected void updateAutoOutputSubscription() {
         if (isAutoOutputItems() && !chargerInventory.isEmpty()) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput);
