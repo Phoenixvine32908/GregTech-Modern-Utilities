@@ -1,6 +1,5 @@
 package net.neganote.gtutilities.common.item;
 
-import appeng.api.util.AEColor;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.IPaintable;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
@@ -39,6 +38,7 @@ import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.util.TriPredicate;
 
 import appeng.api.implementations.blockentities.IColorableBlockEntity;
+import appeng.api.util.AEColor;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -194,8 +194,7 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
                         return parent.getColor() == child.getColor();
                     },
                     limit,
-                    limit * 6
-            );
+                    limit * 6);
 
             AEColor ae2Color = color == null ?
                     AEColor.TRANSPARENT :
