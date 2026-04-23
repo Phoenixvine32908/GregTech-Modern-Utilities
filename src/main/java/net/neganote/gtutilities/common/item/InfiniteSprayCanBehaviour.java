@@ -1,5 +1,6 @@
 package net.neganote.gtutilities.common.item;
 
+import appeng.api.util.AEColor;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.IPaintable;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
@@ -182,13 +183,28 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
         var player = context.getPlayer();
         if (player == null) return false;
 
-        if (GTCEu.Mods.isAE2Loaded() && first instanceof IColorableBlockEntity colorable) {
-            appeng.api.util.AEColor ae2Color = color == null ?
-                    appeng.api.util.AEColor.TRANSPARENT :
-                    appeng.api.util.AEColor.values()[color.ordinal()];
+        if (GTCEu.Mods.isAE2Loaded() && first instanceof IColorableBlockEntity) {
+            var collected = BreadthFirstBlockSearch.conditionalSearch(
+                    IColorableBlockEntity.class,
+                    (IColorableBlockEntity) first,
+                    first.getLevel(),
+                    be -> ((BlockEntity) be).getBlockPos(),
+                    (parent, child, dir) -> {
+                        if (parent == null) return true;
+                        return parent.getColor() == child.getColor();
+                    },
+                    limit,
+                    limit * 6
+            );
 
-            if (colorable.getColor() != ae2Color) {
-                colorable.recolourBlock(null, ae2Color, player);
+            AEColor ae2Color = color == null ?
+                    AEColor.TRANSPARENT :
+                    AEColor.values()[color.ordinal()];
+
+            for (IColorableBlockEntity colorable : collected) {
+                if (colorable.getColor() != ae2Color) {
+                    colorable.recolourBlock(null, ae2Color, player);
+                }
             }
             return true;
         }
