@@ -32,6 +32,7 @@ import net.minecraft.world.level.block.StainedGlassBlock;
 import net.minecraft.world.level.block.StainedGlassPaneBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
+import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraftforge.common.Tags;
@@ -183,6 +184,10 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
         var player = context.getPlayer();
         if (player == null) return false;
 
+        if (first instanceof SignBlockEntity sign) {
+            return handleSignRecolor(sign, color, context);
+        }
+
         if (GTCEu.Mods.isAE2Loaded() && first instanceof IColorableBlockEntity) {
             var collected = BreadthFirstBlockSearch.conditionalSearch(
                     IColorableBlockEntity.class,
@@ -231,6 +236,38 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
             if (level.getBlockEntity(pos) instanceof ShulkerBoxBlockEntity newShulker) {
                 newShulker.load(tag);
             }
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean handleSignRecolor(SignBlockEntity sign, @Nullable DyeColor color, UseOnContext context) {
+        Level level = context.getLevel();
+        Player player = context.getPlayer();
+        if (player == null) return false;
+
+        boolean isFront = sign.isFacingFrontText(player);
+
+        var signText = sign.getText(isFront);
+
+        if (sign.isWaxed()) return false;
+
+        DyeColor targetColor = (color == null) ? DyeColor.BLACK : color;
+        boolean changed = false;
+
+        if (signText.getColor() != targetColor) {
+            sign.updateText(text -> text.setColor(targetColor), isFront);
+            changed = true;
+        }
+
+        if (color == null && signText.hasGlowingText()) {
+            sign.updateText(text -> text.setHasGlowingText(false), isFront);
+            changed = true;
+        }
+
+        if (changed && level != null) {
+            level.sendBlockUpdated(sign.getBlockPos(), sign.getBlockState(), sign.getBlockState(), 3);
             return true;
         }
 
