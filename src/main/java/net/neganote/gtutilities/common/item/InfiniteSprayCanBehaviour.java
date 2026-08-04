@@ -183,10 +183,12 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
         var player = context.getPlayer();
         if (player == null) return false;
 
-        if (GTCEu.Mods.isAE2Loaded() && first instanceof IColorableBlockEntity) {
+        if (GTCEu.Mods.isAE2Loaded() && first instanceof IColorableBlockEntity colorableFirst) {
+            AEColor targetAeColor = color == null ? AEColor.TRANSPARENT : AEColor.values()[color.ordinal()];
+
             var collected = BreadthFirstBlockSearch.conditionalSearch(
                     IColorableBlockEntity.class,
-                    (IColorableBlockEntity) first,
+                    colorableFirst,
                     first.getLevel(),
                     be -> ((BlockEntity) be).getBlockPos(),
                     (parent, child, dir) -> {
@@ -196,16 +198,17 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
                     limit,
                     limit * 6);
 
-            AEColor ae2Color = color == null ?
-                    AEColor.TRANSPARENT :
-                    AEColor.values()[color.ordinal()];
+            int paintedCount = 0;
+            Direction clickDirection = context.getClickedFace();
 
             for (IColorableBlockEntity colorable : collected) {
-                if (colorable.getColor() != ae2Color) {
-                    colorable.recolourBlock(null, ae2Color, player);
+                if (colorable.getColor() != targetAeColor) {
+                    if (colorable.recolourBlock(clickDirection, targetAeColor, player)) {
+                        paintedCount++;
+                    }
                 }
             }
-            return true;
+            return paintedCount > 0;
         }
 
         else if (first instanceof IPipeNode pipe) {
