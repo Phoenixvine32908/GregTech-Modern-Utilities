@@ -139,23 +139,27 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
         int maxBlocksToRecolor = player.isShiftKeyDown() ? ConfigHolder.INSTANCE.tools.sprayCanChainLength : 1;
 
         var pos = context.getClickedPos();
-        tryPaintAt(level, pos, selectedColor, maxBlocksToRecolor, player);
+        Direction side = context.getClickedFace();
+
+        tryPaintAt(level, pos, selectedColor, maxBlocksToRecolor, player, side);
 
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
-    private static void tryPaintAt(Level level, BlockPos pos, @Nullable UtilColor color, int limit, Player player) {
+    private static void tryPaintAt(Level level, BlockPos pos, @Nullable UtilColor color, int limit, Player player,
+                                   @Nullable Direction side) {
         var first = level.getBlockEntity(pos);
-        if (first == null || !handleSpecialBlockEntities(first, color, limit, level, player))
+        if (first == null || !handleSpecialBlockEntities(first, color, limit, level, player, side)) {
             handleBlocks(pos, color, limit, level);
+        }
 
         GTSoundEntries.SPRAY_CAN_TOOL.play(level, null, player.position(), 1.0f, 1.0f);
     }
 
-    private static boolean tryStripAt(Level level, BlockPos pos, Player player) {
+    private static boolean tryStripAt(Level level, BlockPos pos, Player player, @Nullable Direction side) {
         var before = level.getBlockState(pos);
         var be = level.getBlockEntity(pos);
-        if (be != null && handleSpecialBlockEntities(be, null, 1, level, player)) return true;
+        if (be != null && handleSpecialBlockEntities(be, null, 1, level, player, side)) return true;
 
         tryStripBlockColor(level, pos, before.getBlock());
         return level.getBlockState(pos) != before;
@@ -169,7 +173,7 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
         ItemStack offhand = player.getOffhandItem();
         if (!(offhand.getItem() instanceof InfiniteSprayCanItem)) return;
 
-        tryPaintAt(level, event.getPos(), getColor(offhand), 1, player);
+        tryPaintAt(level, event.getPos(), getColor(offhand), 1, player, null);
     }
 
     public static void onBlockBreak(BlockEvent.BreakEvent event) {
@@ -184,7 +188,7 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
         var pos = event.getPos();
         var stateBefore = level.getBlockState(pos);
 
-        if (!tryStripAt(level, pos, player)) return;
+        if (!tryStripAt(level, pos, player, null)) return;
 
         GTSoundEntries.SPRAY_CAN_TOOL.play(level, null, player.position(), 1.0f, 1.0f);
 
@@ -260,7 +264,7 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
     }
 
     private static boolean handleSpecialBlockEntities(BlockEntity first, @Nullable UtilColor color, int limit,
-                                                      Level level, Player player) {
+                                                      Level level, Player player, @Nullable Direction side) {
         if (GTCEu.Mods.isAE2Loaded() && first instanceof IColorableBlockEntity) {
             var collected = BreadthFirstBlockSearch.conditionalSearch(
                     IColorableBlockEntity.class,
@@ -278,12 +282,16 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
                     AEColor.TRANSPARENT :
                     AEColor.fromDye(color.dye);
 
+            boolean changed = false;
             for (IColorableBlockEntity colorable : collected) {
                 if (colorable.getColor() != ae2Color) {
-                    colorable.recolourBlock(null, ae2Color, player);
+                    // Pass the clicked direction face so AE2 multipart cable buses update correctly
+                    if (colorable.recolourBlock(side, ae2Color, player)) {
+                        changed = true;
+                    }
                 }
             }
-            return true;
+            return changed;
         }
 
         else if (first instanceof IPipeNode pipe) {
@@ -303,11 +311,12 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
         else if (first instanceof ShulkerBoxBlockEntity shulkerBox) {
             var tag = shulkerBox.saveWithoutMetadata();
             var pos = first.getBlockPos();
-            recolorBlockNoState(SHULKER_BOX_MAP, color, level, pos, Blocks.SHULKER_BOX);
-            if (level.getBlockEntity(pos) instanceof ShulkerBoxBlockEntity newShulker) {
-                newShulker.load(tag);
+            if (recolorBlockNoState(SHULKER_BOX_MAP, color, level, pos, Blocks.SHULKER_BOX)) {
+                if (level.getBlockEntity(pos) instanceof ShulkerBoxBlockEntity newShulker) {
+                    newShulker.load(tag);
+                }
+                return true;
             }
-            return true;
         }
 
         return false;
