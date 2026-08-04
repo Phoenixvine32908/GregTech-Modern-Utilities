@@ -10,14 +10,14 @@ Current features:
 * Expanded 72-slot ME pattern buffers/proxies
 * Enlarged (many-row) stocking buses/hatches
 * Tag-based stocking buses/hatches
-* The Wireless Active Transformer (WAT)
-  * Has an opt-in coolant system, where the WAT requires coolant to be used, or it'll explode (or just stop if GTm is set to have harmless active transformers)
+* The WEB system, transfers energy wirelessly from WEB Hubs to WEB Receivers
+  * Has an opt-in coolant system, where the WEB Hub requires coolant to be used, or it'll explode (or just stop if GTm is set to have harmless active transformers)
 
 All features can be enabled or disabled in the config.
 
 While this mod was originally created for Monifactory, feel free to use it in any GregTech modpack you like!
 
-All features (except for the sterile cleaning hatch and optional coolant for the WAT) have default recipes.
+All features (except for the sterile cleaning hatch, optional coolant for the WEB Hub, and Infinite Spray Can) have default recipes.
 Feel free to change recipes in your own pack!
 
 ## License

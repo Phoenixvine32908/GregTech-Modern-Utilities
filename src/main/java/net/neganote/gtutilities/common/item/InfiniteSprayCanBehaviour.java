@@ -36,6 +36,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.util.TriPredicate;
+import net.minecraftforge.event.level.BlockEvent;
+import net.neganote.gtutilities.utils.UtilColor;
 
 import appeng.api.implementations.blockentities.IColorableBlockEntity;
 import appeng.api.util.AEColor;
@@ -49,31 +51,32 @@ import java.util.Set;
 
 public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformation {
 
-    private static final ImmutableMap<DyeColor, Block> GLASS_MAP;
-    private static final ImmutableMap<DyeColor, Block> GLASS_PANE_MAP;
-    private static final ImmutableMap<DyeColor, Block> TERRACOTTA_MAP;
-    private static final ImmutableMap<DyeColor, Block> WOOL_MAP;
-    private static final ImmutableMap<DyeColor, Block> CARPET_MAP;
-    private static final ImmutableMap<DyeColor, Block> CONCRETE_MAP;
-    private static final ImmutableMap<DyeColor, Block> CONCRETE_POWDER_MAP;
-    private static final ImmutableMap<DyeColor, Block> SHULKER_BOX_MAP;
+    private static final ImmutableMap<UtilColor, Block> GLASS_MAP;
+    private static final ImmutableMap<UtilColor, Block> GLASS_PANE_MAP;
+    private static final ImmutableMap<UtilColor, Block> TERRACOTTA_MAP;
+    private static final ImmutableMap<UtilColor, Block> WOOL_MAP;
+    private static final ImmutableMap<UtilColor, Block> CARPET_MAP;
+    private static final ImmutableMap<UtilColor, Block> CONCRETE_MAP;
+    private static final ImmutableMap<UtilColor, Block> CONCRETE_POWDER_MAP;
+    private static final ImmutableMap<UtilColor, Block> SHULKER_BOX_MAP;
+    private static final ImmutableMap<Block, Integer> BLOCK_TO_COLOR_INDEX;
 
-    private static Block getBlock(DyeColor color, String postfix) {
-        ResourceLocation id = new ResourceLocation("minecraft", color.getSerializedName() + "_" + postfix);
+    private static Block getBlock(UtilColor color, String postfix) {
+        ResourceLocation id = new ResourceLocation("minecraft", color.dye.getSerializedName() + "_" + postfix);
         return BuiltInRegistries.BLOCK.get(id);
     }
 
     static {
-        ImmutableMap.Builder<DyeColor, Block> glassBuilder = ImmutableMap.builder();
-        ImmutableMap.Builder<DyeColor, Block> glassPaneBuilder = ImmutableMap.builder();
-        ImmutableMap.Builder<DyeColor, Block> terracottaBuilder = ImmutableMap.builder();
-        ImmutableMap.Builder<DyeColor, Block> woolBuilder = ImmutableMap.builder();
-        ImmutableMap.Builder<DyeColor, Block> carpetBuilder = ImmutableMap.builder();
-        ImmutableMap.Builder<DyeColor, Block> concreteBuilder = ImmutableMap.builder();
-        ImmutableMap.Builder<DyeColor, Block> concretePowderBuilder = ImmutableMap.builder();
-        ImmutableMap.Builder<DyeColor, Block> shulkerBoxBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<UtilColor, Block> glassBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<UtilColor, Block> glassPaneBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<UtilColor, Block> terracottaBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<UtilColor, Block> woolBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<UtilColor, Block> carpetBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<UtilColor, Block> concreteBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<UtilColor, Block> concretePowderBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<UtilColor, Block> shulkerBoxBuilder = ImmutableMap.builder();
 
-        for (DyeColor color : DyeColor.values()) {
+        for (UtilColor color : UtilColor.values()) {
             glassBuilder.put(color, getBlock(color, "stained_glass"));
             glassPaneBuilder.put(color, getBlock(color, "stained_glass_pane"));
             terracottaBuilder.put(color, getBlock(color, "terracotta"));
@@ -91,6 +94,22 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
         CONCRETE_MAP = concreteBuilder.build();
         CONCRETE_POWDER_MAP = concretePowderBuilder.build();
         SHULKER_BOX_MAP = shulkerBoxBuilder.build();
+
+        ImmutableMap.Builder<Block, Integer> blockColorBuilder = ImmutableMap.builder();
+        blockColorBuilder.put(Blocks.GLASS, -1);
+        blockColorBuilder.put(Blocks.GLASS_PANE, -1);
+        blockColorBuilder.put(Blocks.TERRACOTTA, -1);
+        for (UtilColor color : UtilColor.values()) {
+            int ordinal = color.ordinal();
+            blockColorBuilder.put(GLASS_MAP.get(color), ordinal);
+            blockColorBuilder.put(GLASS_PANE_MAP.get(color), ordinal);
+            blockColorBuilder.put(TERRACOTTA_MAP.get(color), ordinal);
+            blockColorBuilder.put(WOOL_MAP.get(color), ordinal);
+            blockColorBuilder.put(CARPET_MAP.get(color), ordinal);
+            blockColorBuilder.put(CONCRETE_MAP.get(color), ordinal);
+            blockColorBuilder.put(CONCRETE_POWDER_MAP.get(color), ordinal);
+        }
+        BLOCK_TO_COLOR_INDEX = blockColorBuilder.build();
     }
 
     private static final TriPredicate<IPaintable, IPaintable, Direction> paintablePredicate = (parent, child, dir) -> {
@@ -116,27 +135,76 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
         Level level = context.getLevel();
         if (player == null) return InteractionResult.PASS;
 
-        DyeColor selectedColor = getColor(stack);
+        UtilColor selectedColor = getColor(stack);
         int maxBlocksToRecolor = player.isShiftKeyDown() ? ConfigHolder.INSTANCE.tools.sprayCanChainLength : 1;
 
         var pos = context.getClickedPos();
-        var first = level.getBlockEntity(pos);
-
-        if (first == null || !handleSpecialBlockEntities(first, selectedColor, maxBlocksToRecolor, context)) {
-            handleBlocks(pos, selectedColor, maxBlocksToRecolor, context);
-        }
-
-        GTSoundEntries.SPRAY_CAN_TOOL.play(level, null, player.position(), 1.0f, 1.0f);
+        tryPaintAt(level, pos, selectedColor, maxBlocksToRecolor, player);
 
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
+    private static void tryPaintAt(Level level, BlockPos pos, @Nullable UtilColor color, int limit, Player player) {
+        var first = level.getBlockEntity(pos);
+        if (first == null || !handleSpecialBlockEntities(first, color, limit, level, player))
+            handleBlocks(pos, color, limit, level);
+
+        GTSoundEntries.SPRAY_CAN_TOOL.play(level, null, player.position(), 1.0f, 1.0f);
+    }
+
+    private static boolean tryStripAt(Level level, BlockPos pos, Player player) {
+        var before = level.getBlockState(pos);
+        var be = level.getBlockEntity(pos);
+        if (be != null && handleSpecialBlockEntities(be, null, 1, level, player)) return true;
+
+        tryStripBlockColor(level, pos, before.getBlock());
+        return level.getBlockState(pos) != before;
+    }
+
+    public static void onBlockPlaced(BlockEvent.EntityPlaceEvent event) {
+        if (event.isCanceled()) return;
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (!(event.getLevel() instanceof Level level)) return;
+
+        ItemStack offhand = player.getOffhandItem();
+        if (!(offhand.getItem() instanceof InfiniteSprayCanItem)) return;
+
+        tryPaintAt(level, event.getPos(), getColor(offhand), 1, player);
+    }
+
+    public static void onBlockBreak(BlockEvent.BreakEvent event) {
+        if (event.isCanceled()) return;
+        if (event.getPlayer() == null) return;
+        if (!(event.getLevel() instanceof Level level)) return;
+        var player = event.getPlayer();
+
+        var offhand = player.getOffhandItem();
+        if (!(offhand.getItem() instanceof InfiniteSprayCanItem)) return;
+
+        var pos = event.getPos();
+        var stateBefore = level.getBlockState(pos);
+
+        if (!tryStripAt(level, pos, player)) return;
+
+        GTSoundEntries.SPRAY_CAN_TOOL.play(level, null, player.position(), 1.0f, 1.0f);
+
+        var stateAfter = level.getBlockState(pos);
+        if (stateAfter == stateBefore) return;
+        event.setCanceled(true);
+
+        var be = level.getBlockEntity(pos);
+        var tool = player.getMainHandItem();
+
+        level.removeBlock(pos, false);
+        if (!player.isCreative()) stateAfter.getBlock().playerDestroy(level, player, pos, stateAfter, be, tool);
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
-        DyeColor currentColor = getColor(stack);
+        UtilColor currentColor = getColor(stack);
         if (currentColor != null) {
             tooltip.add(Component.translatable("behaviour.paintspray.infinite.tooltip.current_color",
-                    Component.translatable("color.minecraft." + currentColor.getSerializedName())));
+                    Component.translatable("color.minecraft." + currentColor.dye.getSerializedName())));
         } else {
             tooltip.add(Component.translatable("behaviour.paintspray.infinite.tooltip.solvent"));
         }
@@ -145,7 +213,7 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
         tooltip.add(Component.translatable("behaviour.paintspray.infinite.tooltip.info_2"));
     }
 
-    public static void setColor(ItemStack stack, @Nullable DyeColor color) {
+    public static void setColor(ItemStack stack, @Nullable UtilColor color) {
         if (color == null) {
             stack.getOrCreateTag().putInt("color", -1);
         } else {
@@ -153,22 +221,34 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
         }
     }
 
+    private static final UtilColor[] COLORS = UtilColor.values();
+
     @Nullable
-    public static DyeColor getColor(ItemStack stack) {
+    public static UtilColor getColor(ItemStack stack) {
         CompoundTag tag = stack.getTag();
         if (tag == null || !tag.contains("color") || tag.getInt("color") == -1) {
             return null;
         }
         int ordinal = tag.getInt("color");
-        DyeColor[] colors = DyeColor.values();
-        if (ordinal >= 0 && ordinal < colors.length) {
-            return colors[ordinal];
-        }
-        return null;
+        return ordinal >= 0 && ordinal < COLORS.length ? COLORS[ordinal] : null;
     }
 
-    private void handleBlocks(BlockPos start, DyeColor color, int limit, UseOnContext context) {
-        final var level = context.getLevel();
+    /**
+     * Returns the spray can color index for the given block state: -1 for uncolored/solvent,
+     * 0-15 for a UtilColor ordinal, or null if the block is not supported by the spray can.
+     */
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public static Integer getBlockPickedColorIndex(BlockState state) {
+        for (Property<?> property : state.getProperties()) {
+            if (property.getValueClass() == DyeColor.class) {
+                return UtilColor.fromDye(state.getValue((Property<DyeColor>) property)).ordinal();
+            }
+        }
+        return BLOCK_TO_COLOR_INDEX.get(state.getBlock());
+    }
+
+    private static void handleBlocks(BlockPos start, @Nullable UtilColor color, int limit, Level level) {
         var collected = BreadthFirstBlockSearch
                 .conditionalBlockPosSearch(start,
                         (parent, child) -> parent == null ||
@@ -179,16 +259,12 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
         }
     }
 
-    private boolean handleSpecialBlockEntities(BlockEntity first, DyeColor color, int limit, UseOnContext context) {
-        var player = context.getPlayer();
-        if (player == null) return false;
-
-        if (GTCEu.Mods.isAE2Loaded() && first instanceof IColorableBlockEntity colorableFirst) {
-            AEColor targetAeColor = color == null ? AEColor.TRANSPARENT : AEColor.values()[color.ordinal()];
-
+    private static boolean handleSpecialBlockEntities(BlockEntity first, @Nullable UtilColor color, int limit,
+                                                      Level level, Player player) {
+        if (GTCEu.Mods.isAE2Loaded() && first instanceof IColorableBlockEntity) {
             var collected = BreadthFirstBlockSearch.conditionalSearch(
                     IColorableBlockEntity.class,
-                    colorableFirst,
+                    (IColorableBlockEntity) first,
                     first.getLevel(),
                     be -> ((BlockEntity) be).getBlockPos(),
                     (parent, child, dir) -> {
@@ -198,17 +274,16 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
                     limit,
                     limit * 6);
 
-            int paintedCount = 0;
-            Direction clickDirection = context.getClickedFace();
+            AEColor ae2Color = color == null ?
+                    AEColor.TRANSPARENT :
+                    AEColor.fromDye(color.dye);
 
             for (IColorableBlockEntity colorable : collected) {
-                if (colorable.getColor() != targetAeColor) {
-                    if (colorable.recolourBlock(clickDirection, targetAeColor, player)) {
-                        paintedCount++;
-                    }
+                if (colorable.getColor() != ae2Color) {
+                    colorable.recolourBlock(null, ae2Color, player);
                 }
             }
-            return paintedCount > 0;
+            return true;
         }
 
         else if (first instanceof IPipeNode pipe) {
@@ -227,10 +302,8 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
 
         else if (first instanceof ShulkerBoxBlockEntity shulkerBox) {
             var tag = shulkerBox.saveWithoutMetadata();
-            var level = first.getLevel();
             var pos = first.getBlockPos();
             recolorBlockNoState(SHULKER_BOX_MAP, color, level, pos, Blocks.SHULKER_BOX);
-            assert level != null;
             if (level.getBlockEntity(pos) instanceof ShulkerBoxBlockEntity newShulker) {
                 newShulker.load(tag);
             }
@@ -240,13 +313,13 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
         return false;
     }
 
-    private <T extends IPaintable> void paintPaintables(Set<T> paintables, DyeColor color) {
+    private static <T extends IPaintable> void paintPaintables(Set<T> paintables, @Nullable UtilColor color) {
         for (var c : paintables) {
             paintPaintable(c, color);
         }
     }
 
-    private void tryPaintBlock(Level level, BlockPos pos, DyeColor color) {
+    private static void tryPaintBlock(Level level, BlockPos pos, @Nullable UtilColor color) {
         var blockState = level.getBlockState(pos);
         var block = blockState.getBlock();
         if (color == null) {
@@ -258,7 +331,7 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
         }
     }
 
-    private void tryPaintSpecialBlock(Level world, BlockPos pos, Block block, DyeColor color) {
+    private static void tryPaintSpecialBlock(Level world, BlockPos pos, Block block, @Nullable UtilColor color) {
         if (block.defaultBlockState().is(Tags.Blocks.GLASS)) {
             if (recolorBlockNoState(GLASS_MAP, color, world, pos, Blocks.GLASS)) {
                 return;
@@ -294,18 +367,18 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
         }
     }
 
-    private static void paintPaintable(IPaintable paintable, DyeColor color) {
+    private static void paintPaintable(IPaintable paintable, UtilColor color) {
         if (color == null) {
             if (!paintable.isPainted()) {
                 return;
             }
             paintable.setPaintingColor(IPaintable.UNPAINTED_COLOR);
-        } else if (paintable.getPaintingColor() != color.getMapColor().col) {
-            paintable.setPaintingColor(color.getMapColor().col);
+        } else if (paintable.getPaintingColor() != color.dye.getMapColor().col) {
+            paintable.setPaintingColor(color.dye.getMapColor().col);
         }
     }
 
-    private static boolean recolorBlockNoState(Map<DyeColor, Block> map, @Nullable DyeColor color,
+    private static boolean recolorBlockNoState(Map<UtilColor, Block> map, @Nullable UtilColor color,
                                                Level level, BlockPos pos, Block defaultBlock) {
         Block newBlock = map.getOrDefault(color, defaultBlock);
         if (newBlock == Blocks.AIR) newBlock = defaultBlock;
@@ -361,17 +434,17 @@ public class InfiniteSprayCanBehaviour implements IInteractionItem, IAddInformat
                 try {
                     defaultColor = (DyeColor) defaultState.getValue(prop);
                 } catch (IllegalArgumentException ignored) {}
-                recolorBlockState(world, pos, defaultColor);
+                recolorBlockState(world, pos, UtilColor.fromDye(defaultColor));
                 return;
             }
         }
     }
 
-    private static boolean recolorBlockState(Level level, BlockPos pos, DyeColor color) {
+    private static boolean recolorBlockState(Level level, BlockPos pos, UtilColor color) {
         BlockState state = level.getBlockState(pos);
         for (Property property : state.getProperties()) {
             if (property.getValueClass() == DyeColor.class) {
-                level.setBlockAndUpdate(pos, state.setValue(property, color));
+                level.setBlockAndUpdate(pos, state.setValue(property, color.dye));
                 return true;
             }
         }

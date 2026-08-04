@@ -51,31 +51,50 @@ public class UtilRecipes {
             registerOmnitoolRecipe(provider);
         }
 
-        if (UtilConfig.INSTANCE.features.pterbEnabled) {
+        if (UtilConfig.INSTANCE.features.webEnabled) {
             ASSEMBLY_LINE_RECIPES.recipeBuilder("pterb")
-                    .inputItems(GTMultiMachines.ACTIVE_TRANSFORMER)
+                    .inputItems(UtilMachines.WEB_RECEIVER)
                     .inputItems(TagPrefix.plate, GTMaterials.Neutronium, 32)
-                    .inputItems(SENSOR.get(GTValues.UV), 8)
+                    .inputItems(SENSOR.get(GTValues.UV), 2)
                     .inputItems(EMITTER.get(GTValues.UV), 8)
                     .inputItems(FIELD_GENERATOR.get(GTValues.UV), 4)
-                    .inputItems(CustomTags.UHV_CIRCUITS, 2)
+                    .inputItems(CustomTags.UHV_CIRCUITS, 4)
                     .inputItems(TagPrefix.pipeLargeFluid, GTMaterials.Neutronium, 4)
-                    .inputItems(CABLE_QUAD.get(GTValues.UV), 8)
+                    .inputItems(CABLE_QUAD.get(GTValues.UV), 16)
                     .inputItems(LASER_PIPES[0], 8)
                     .inputFluids(GTMaterials.SolderingAlloy.getFluid(GTValues.L * 32))
                     .EUt(1_600_000L)
                     .duration(1200)
-                    .outputItems(UtilMachines.PTERB_MACHINE)
+                    .outputItems(UtilMachines.WEB_HUB)
+                    .addMaterialInfo(true)
+                    .stationResearch(b -> b
+                            .researchStack(UtilMachines.WEB_RECEIVER.asStack()).CWUt(16))
+                    .save(provider);
+
+            ASSEMBLY_LINE_RECIPES.recipeBuilder("web")
+                    .inputItems(GTMultiMachines.ACTIVE_TRANSFORMER)
+                    .inputItems(TagPrefix.plate, NaquadahAlloy, 8)
+                    .inputItems(SENSOR.get(UV), 4)
+                    .inputItems(EMITTER.get(UV), 1)
+                    .inputItems(CustomTags.UV_CIRCUITS, 1)
+                    .inputItems(TagPrefix.pipeLargeFluid, Naquadah, 1)
+                    .inputItems(CABLE_QUAD.get(GTValues.UV), 4)
+                    .inputItems(LASER_PIPES[0], 8)
+                    .inputFluids(GTMaterials.SolderingAlloy.getFluid(GTValues.L * 8))
+                    .EUt(1_600_000L)
+                    .duration(250)
+                    .outputItems(UtilMachines.WEB_RECEIVER)
                     .addMaterialInfo(true)
                     .stationResearch(b -> b
                             .researchStack(GTMultiMachines.ACTIVE_TRANSFORMER.asStack()).CWUt(16))
                     .save(provider);
+
         }
 
         if (UtilConfig.INSTANCE.features.expandedBuffersEnabled && GTCEu.Mods.isAE2Loaded()) {
             ASSEMBLY_LINE_RECIPES.recipeBuilder("expanded_me_pattern_buffer")
                     .inputItems(DUAL_IMPORT_HATCH[ZPM], 1)
-                    .inputItems(EMITTER_ZPM, 4)
+                    .inputItems(EMITTER_ZPM, 2)
                     .inputItems(CustomTags.ZPM_CIRCUITS, 4)
                     .inputItems(AEBlocks.PATTERN_PROVIDER.asItem(), 4)
                     .inputItems(AEBlocks.INTERFACE.asItem(), 4)

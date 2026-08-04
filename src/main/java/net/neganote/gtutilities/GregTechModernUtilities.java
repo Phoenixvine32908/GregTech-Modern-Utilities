@@ -25,9 +25,11 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neganote.gtutilities.client.keybind.UtilKeybinds;
 import net.neganote.gtutilities.client.renderer.SprayCanHudOverlay;
 import net.neganote.gtutilities.client.renderer.UtilShaders;
 import net.neganote.gtutilities.common.data.UtilPlaceholders;
+import net.neganote.gtutilities.common.item.InfiniteSprayCanBehaviour;
 import net.neganote.gtutilities.common.item.UtilItems;
 import net.neganote.gtutilities.common.item.UtilToolItems;
 import net.neganote.gtutilities.common.machine.UtilAEMachines;
@@ -36,6 +38,7 @@ import net.neganote.gtutilities.common.materials.UtilMaterials;
 import net.neganote.gtutilities.common.tools.UtilToolConnection;
 import net.neganote.gtutilities.config.UtilConfig;
 import net.neganote.gtutilities.datagen.UtilDatagen;
+import net.neganote.gtutilities.integration.ae2.gridservice.TagStockingGridService;
 import net.neganote.gtutilities.network.UtilsNetwork;
 
 import com.tterrag.registrate.util.entry.RegistryEntry;
@@ -58,6 +61,7 @@ public class GregTechModernUtilities {
         modEventBus.addListener(this::commonSetup);
         if (GTCEu.isClientSide()) {
             modEventBus.addListener(this::clientSetup);
+            modEventBus.addListener(UtilKeybinds::register);
             modEventBus.register(UtilShaders.class);
         }
         modEventBus.addListener(this::addMaterialRegistries);
@@ -70,6 +74,9 @@ public class GregTechModernUtilities {
         // If we want to use annotations to register event listeners,
         // we need to register our object like this!
         MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(UtilEvents.class);
+        MinecraftForge.EVENT_BUS.addListener(InfiniteSprayCanBehaviour::onBlockPlaced);
+        MinecraftForge.EVENT_BUS.addListener(InfiniteSprayCanBehaviour::onBlockBreak);
     }
 
     public static void init() {
@@ -112,6 +119,9 @@ public class GregTechModernUtilities {
     private void commonSetup(final FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
             UtilsNetwork.init();
+            if (GTCEu.Mods.isAE2Loaded()) {
+                TagStockingGridService.register();
+            }
             LOGGER.info("Hello from common setup! This is *after* registries are done, so we can do this:");
             LOGGER.info("Look, I found a {}!", Items.DIAMOND);
         });
